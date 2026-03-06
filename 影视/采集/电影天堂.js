@@ -812,12 +812,33 @@ async function play(params) {
         }
         const videoId = extractVideoIdFromFlag(flag);
         OmniBox.log("info", `获取播放地址: playId=${playId}, flag=${flag}, videoId=${videoId}`);
-        let urlsResult = [{ name: "播放", url: playId }];
+
+        // 参考两个BT，增加播放地址嗅探逻辑：
+        // 1) 直链资源直接播放
+        // 2) 非直链尝试 OmniBox.sniffVideo 嗅探真实媒体地址
+        let resolvedUrl = playId;
+        let resolvedHeader = {};
         let parse = 1;
-        if (/\.(m3u8|mp4)$/.test(playId)) {
+
+        const isDirectPlayable = /\.(m3u8|mp4|flv|avi|mkv|ts)(?:\?|#|$)/i.test(playId || "");
+        if (isDirectPlayable) {
             parse = 0;
+        } else if (/^https?:\/\//i.test(playId || "")) {
+            try {
+                const sniffResult = await OmniBox.sniffVideo(playId);
+                if (sniffResult && sniffResult.url) {
+                    resolvedUrl = sniffResult.url;
+                    resolvedHeader = sniffResult.header || {};
+                    parse = 0;
+                    OmniBox.log("info", `嗅探成功: ${resolvedUrl}`);
+                }
+            } catch (sniffError) {
+                OmniBox.log("warn", `嗅探失败，回退原始地址: ${sniffError.message}`);
+            }
         }
-        let playResponse = { urls: urlsResult, flag: flag, header: {}, parse: parse };
+
+        let urlsResult = [{ name: "播放", url: resolvedUrl }];
+        let playResponse = { urls: urlsResult, flag: flag, header: resolvedHeader, parse: parse };
         if (DANMU_API) {
             let fileName = "";
             if (vodName) {
