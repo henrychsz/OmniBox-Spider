@@ -1,8 +1,10 @@
 // @name 哔哩教育
 // @author 
 // @description 刮削：不支持，弹幕：支持，嗅探：不支持，登录：支持
-// @version 1.0.2
-// @downloadURL https://xget.xi-xu.me/gh/Silent1566/OmniBox-Spider/raw/refs/heads/main/教育/哔哩教育.js
+// @dependencies: axios
+// @version 1.0.3
+// @downloadURL https://gh-proxy.org/https://github.com/Silent1566/OmniBox-Spider/raw/refs/heads/main/教育/哔哩教育.js
+
 const axios = require("axios");
 const OmniBox = require("omnibox_sdk");
 
