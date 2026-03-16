@@ -2,7 +2,7 @@
 // @author 
 // @description 刮削：支持，弹幕：支持，嗅探：支持
 // @dependencies: axios, cheerio
-// @version 1.0.3
+// @version 1.0.4
 // @downloadURL https://gh-proxy.org/https://github.com/Silent1566/OmniBox-Spider/raw/refs/heads/main/影视/网盘/木偶.js
 
 // 引入 OmniBox SDK
@@ -2259,7 +2259,7 @@ async function home(params) {
 
         OmniBox.log("info", `从首页导航提取到 ${classes.length} 个分类`);
 
-        const firstModule = $(".module").first();
+        const firstModule = $(".module");
 
         if (firstModule.length > 0) {
           const moduleItems = firstModule.find(".module-item");
