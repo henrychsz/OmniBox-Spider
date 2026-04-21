@@ -2,7 +2,7 @@
 # @name 人人电影
 # @author 梦
 # @description 影视站：https://www.rrdynb.com/ ，支持首页、分类、搜索、详情与网盘线路提取（Python版）
-# @version 1.1.9
+# @version 1.2.1
 # @downloadURL https://gh-proxy.org/https://github.com/Silent1566/OmniBox-Spider/raw/refs/heads/main/影视/网盘/人人电影.py
 
 import json
@@ -54,6 +54,13 @@ VIDEO_EXTS = (".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".m4v", ".ts", ".m
 # SDK 缓存默认 TTL（秒）。
 CACHE_EX_SECONDS = 3600
 # ==================== 配置区域结束 ====================
+
+
+def build_share_source_name(base_name: str, index: int, total: int) -> str:
+    name = str(base_name or "资源").strip() or "资源"
+    if total <= 1:
+        return name
+    return f"{name}{index}"
 
 
 def abs_url(url: str) -> str:
@@ -552,6 +559,7 @@ async def collect_drive_videos(share_url: str, folder_id: str = "0", depth: int 
 
 
 CARD_RE = re.compile(r'<li\s+class="pure-g\s+shadow"[^>]*>(.*?)</li>', re.S | re.I)
+CATEGORY_DL_RE = re.compile(r'<dl\s+class="dl-horizontal"[^>]*>(.*?)</dl>', re.S | re.I)
 
 
 def extract_cards(text: str, type_id: str, type_name: str):
@@ -581,6 +589,28 @@ def extract_cards(text: str, type_id: str, type_name: str):
             "vod_pic": abs_url(img_m.group(1)) if img_m else "",
             "vod_remarks": remarks,
             "vod_content": brief,
+            "type_id": type_id,
+            "type_name": type_name,
+        })
+    return cards
+
+
+def extract_category_cards(text: str, type_id: str, type_name: str):
+    cards = []
+    for block in CATEGORY_DL_RE.findall(text):
+        href_m = re.search(r'<a[^>]+class="img-wraper"[^>]+href="([^"]+)"', block, re.I)
+        title_m = re.search(r'<dd>\s*<a[^>]*>(.*?)</a>', block, re.S | re.I)
+        img_m = re.search(r'<img[^>]+src="([^"]+)"', block, re.I)
+        href = abs_url(href_m.group(1)) if href_m else ""
+        if not href:
+            continue
+        title = normalize_vod_title(title_m.group(1) if title_m else "")
+        cards.append({
+            "vod_id": href,
+            "vod_name": title or href.rsplit("/", 1)[-1],
+            "vod_pic": abs_url(img_m.group(1)) if img_m else "",
+            "vod_remarks": "",
+            "vod_content": "",
             "type_id": type_id,
             "type_name": type_name,
         })
@@ -710,12 +740,12 @@ async def category(params, context):
         await log("info", f"[rrdynb][category] cid={category_id} page={page} filters={filters} url={url}")
         text = await request_text(url)
         cfg = CATEGORY_MAP[TYPEID_TO_KEY.get(category_id, "movie")]
-        cards = extract_cards(text, cfg["type_id"], cfg["type_name"])
-        has_more = len(cards) >= 10
+        cards = extract_category_cards(text, cfg["type_id"], cfg["type_name"])
+        has_more = len(cards) > 0
         return {
             "page": page,
             "pagecount": page + 1 if has_more else page,
-            "total": page * len(cards) + (1 if has_more else 0),
+            "total": page * max(len(cards), 1) + (1 if has_more else 0),
             "list": cards,
         }
     except Exception as e:
@@ -775,8 +805,8 @@ async def detail(params, context):
         await log("info", f"[rrdynb][detail] share_count={len(share_links)}")
 
         sources = []
-        source_name_count = {}
         caller_source = resolve_caller_source(params, context)
+        total_share_links = len(share_links)
         for idx, share_url in enumerate(share_links, start=1):
             share_url = normalize_share_url(share_url)
             drive_info = None
@@ -791,12 +821,12 @@ async def detail(params, context):
                 await log("warn", f"[rrdynb][drive-info] share={share_url} err={e}")
                 drive_label = infer_drive_label(share_url)
                 drive_type = infer_drive_type(share_url)
-            source_name = drive_label or infer_drive_label(share_url)
+            base_source_name = build_share_source_name(drive_label or infer_drive_label(share_url), idx, total_share_links)
 
             episodes = []
             if share_url.startswith("http"):
                 videos = await collect_drive_videos(share_url, "0")
-                await log("info", f"[rrdynb][detail] share={source_name} videos={len(videos)}")
+                await log("info", f"[rrdynb][detail] share={base_source_name} videos={len(videos)}")
                 route_types = get_route_types(context, drive_type)
                 for route_type in route_types:
                     route_episodes = []
@@ -808,14 +838,12 @@ async def detail(params, context):
                             "size": int(file.get("size") or 0),
                         })
                     if route_episodes:
-                        display_name = source_name
+                        final_source_name = base_source_name
                         if len(route_types) > 1:
-                            display_name = f"{source_name}-{route_type}"
-                        source_name_count[display_name] = source_name_count.get(display_name, 0) + 1
-                        final_source_name = display_name if source_name_count[display_name] == 1 else f"{display_name}{source_name_count[display_name]}"
+                            final_source_name = f"{base_source_name}-{route_type}"
                         sources.append({"name": final_source_name, "episodes": route_episodes})
                 if not videos:
-                    await log("warn", f"[rrdynb][detail] skip empty drive source: {source_name} share={share_url}")
+                    await log("warn", f"[rrdynb][detail] skip empty drive source: {base_source_name} share={share_url}")
                     continue
             else:
                 kind = "link"
@@ -828,9 +856,7 @@ async def detail(params, context):
                     "name": fallback_name,
                     "playId": json.dumps({"kind": kind, "url": share_url, "name": fallback_name}, ensure_ascii=False),
                 }]
-                source_name_count[source_name] = source_name_count.get(source_name, 0) + 1
-                final_source_name = source_name if source_name_count[source_name] == 1 else f"{source_name}{source_name_count[source_name]}"
-                sources.append({"name": final_source_name, "episodes": episodes})
+                sources.append({"name": base_source_name, "episodes": episodes})
 
         sources = sort_play_sources_by_drive_order(sources)
         if len(sources) > 1 and DRIVE_ORDER:
