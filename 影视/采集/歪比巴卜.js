@@ -20,7 +20,12 @@ try {
     },
   };
 }
-const runner = require('spider_runner');
+let runner;
+try {
+  runner = require('spider_runner');
+} catch (_) {
+  runner = { run() {} };
+}
 const axios = require('axios');
 const http = require('http');
 const https = require('https');
