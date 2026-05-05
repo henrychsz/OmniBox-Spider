@@ -332,6 +332,10 @@ async function detail(params = {}) {
     else if (params.ids) ids = String(params.ids).split(',').map((s) => s.trim()).filter(Boolean);
     else if (params.id) ids = String(params.id).split(',').map((s) => s.trim()).filter(Boolean);
     else if (params.vod_id) ids = String(params.vod_id).split(',').map((s) => s.trim()).filter(Boolean);
+    // 新增对 videoId / video_id 的兼容
+    else if (params.videoId) ids = String(params.videoId).split(',').map((s) => s.trim()).filter(Boolean);
+    else if (params.video_id) ids = String(params.video_id).split(',').map((s) => s.trim()).filter(Boolean);
+
 
     const list = [];
     for (const rawId of ids) {
