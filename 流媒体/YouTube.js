@@ -2,7 +2,7 @@
 // @author OmniBox
 // @description YouTube影视源，支持分组分类、二级筛选、搜索、播放列表与视频播放
 // @dependencies: axios
-// @version 1.0.1
+// @version 1.1.0
 // @downloadURL https://gh-proxy.org/https://github.com/Silent1566/OmniBox-Spider/raw/refs/heads/main/流媒体/YouTube.js
 
 const axios = require("axios");
@@ -230,14 +230,21 @@ async function home(params = {}) {
   categories.forEach(cat => {
     const catFilters = filters.filter(f => f.categoryId === cat.id).sort((a, b) => a.order - b.order);
     if (catFilters.length > 0) {
+      const values = [{ name: "全部", value: "" }, ...catFilters.map(f => ({ name: f.name, value: f.id }))];
       filtersObj[cat.id] = [
         {
           key: "filter",
           name: "筛选",
-          value: catFilters.map(f => ({ n: f.name, v: f.id })),
+          init: "",
+          value: values,
         },
       ];
     }
+  });
+
+  logInfo("首页筛选样例", {
+    sampleKey: Object.keys(filtersObj)[0],
+    sampleValue: filtersObj[Object.keys(filtersObj)[0]],
   });
 
   let list = [];
@@ -255,11 +262,11 @@ async function category(params = {}) {
   const categoryId = params.categoryId || params.type_id || "";
   const page = params.page || "1";
 
-  const ext = params.extend || params.filters || {};
-  const filterValue = ext.filter || params.filter || "";
-  const sp = ext.sp || params.sp || "";
-  const gl = ext.gl || params.gl || DEFAULT_GL;
-  const hl = ext.hl || params.hl || DEFAULT_HL;
+  const filters = params.filters || params.extend || {};
+  const filterValue = filters.filter || params.filter || "";
+  const sp = filters.sp || params.sp || "";
+  const gl = filters.gl || params.gl || DEFAULT_GL;
+  const hl = filters.hl || params.hl || DEFAULT_HL;
 
   logInfo("分类加载", { categoryId, page, filter: filterValue, sp, gl, hl });
 
@@ -483,11 +490,11 @@ async function search(params = {}) {
   const keyword = params.keyword || params.wd || "";
   const page = params.page || "1";
 
-  const ext = params.extend || params.filters || {};
-  const filterValue = ext.filter || params.filter || "";
-  const sp = ext.sp || params.sp || "";
-  const gl = ext.gl || params.gl || DEFAULT_GL;
-  const hl = ext.hl || params.hl || DEFAULT_HL;
+  const filters = params.filters || params.extend || {};
+  const filterValue = filters.filter || params.filter || "";
+  const sp = filters.sp || params.sp || "";
+  const gl = filters.gl || params.gl || DEFAULT_GL;
+  const hl = filters.hl || params.hl || DEFAULT_HL;
 
   logInfo("搜索开始", { keyword, page, filter: filterValue, sp, gl, hl });
 
