@@ -1,5 +1,5 @@
 // @name DJ音乐[听] - OmniBox
-// @version 1.0.6
+// @version 1.0.7
 // @author https://github.com/hjdhnx/drpy-node/blob/main/spider/js/DJ%E9%9F%B3%E4%B9%90%5B%E5%90%AC%5D.js
 // @origin https://github.com/hjdhnx/drpy-node/blob/main/spider/js/DJ%E9%9F%B3%E4%B9%90%5B%E5%90%AC%5D.js
 // @push 0

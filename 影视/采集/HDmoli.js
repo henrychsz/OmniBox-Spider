@@ -1,5 +1,5 @@
 // @name HDmoli
-// @version 1.0.6
+// @version 1.0.7
 // @downloadURL https://gh-proxy.org/https://github.com/Silent1566/OmniBox-Spider/raw/refs/heads/main/影视/采集/HDmoli.js
 // @dependencies cheerio
 

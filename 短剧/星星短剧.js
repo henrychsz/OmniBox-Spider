@@ -1,5 +1,5 @@
 // @name 星星短剧 ᵈᶻ[短]
-// @version 1.0.3
+// @version 1.0.4
 // @push 0
 // @dependencies axios
 // @downloadURL https://gh-proxy.org/https://github.com/Silent1566/OmniBox-Spider/raw/refs/heads/main/短剧/星星短剧.js

@@ -1,7 +1,7 @@
 // @name 剧迷115
 // @author 梦
 // @description 影视站：gimy115.top，支持首页、分类、搜索、详情与网盘线路提取；支持刮削、弹幕、播放记录；Cookie 支持环境变量配置
-// @version 1.2.0
+// @version 1.2.1
 // @dependencies cheerio
 
 const OmniBox = require("omnibox_sdk");

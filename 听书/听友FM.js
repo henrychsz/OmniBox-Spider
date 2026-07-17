@@ -1,6 +1,6 @@
 // @name 听友FM
 // @author OmniBox助手
-// @version 1.0.5
+// @version 1.0.6
 // @downloadURL https://gh-proxy.org/https://github.com/Silent1566/OmniBox-Spider/raw/refs/heads/main/听书/听友FM.js
 // @dependencies axios,cheerio,@noble/ciphers
 // notes:
